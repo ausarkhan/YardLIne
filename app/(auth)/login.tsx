@@ -1,12 +1,44 @@
-import { useState } from "react";
-import { Alert, Pressable, Text, TextInput, View } from "react-native";
+import { Redirect } from "expo-router";
+import { useEffect, useState } from "react";
+import { View, Text, TextInput, Pressable, Alert } from "react-native";
 import { supabase } from "../../lib/supabase";
 
 export default function LoginScreen() {
+  const [ready, setReady] = useState(false);
+  const [hasSession, setHasSession] = useState(false);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function signIn() {
+  useEffect(() => {
+    async function run() {
+      // ✅ IMPORTANT for web magic links: consume tokens from the URL hash
+      try {
+        // This will set the session if the URL contains tokens
+        // (safe to call even when there are no tokens)
+        // @ts-ignore
+        if (supabase.auth.getSessionFromUrl) {
+          // @ts-ignore
+          await supabase.auth.getSessionFromUrl({ storeSession: true });
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      const { data } = await supabase.auth.getSession();
+      setHasSession(!!data.session);
+      setReady(true);
+    }
+
+    run();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setHasSession(!!session);
+    });
+
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const signIn = async () => {
     if (!email) return Alert.alert("Enter your campus email");
 
     setLoading(true);
@@ -14,10 +46,14 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (error) Alert.alert(error.message);
-    else Alert.alert("Check your email", "We sent you a login link.");
-  }
+    else Alert.alert("Check your email", "We sent you a login code.");
+  };
 
-  return (
+  if (!ready) return null;
+
+  return hasSession ? (
+    <Redirect href="/(tabs)" />
+  ) : (
     <View style={{ flex: 1, justifyContent: "center", padding: 24 }}>
       <Text style={{ fontSize: 28, fontWeight: "600", marginBottom: 12 }}>
         YardLine
@@ -49,13 +85,14 @@ export default function LoginScreen() {
           padding: 14,
           borderRadius: 8,
           alignItems: "center",
-          opacity: loading ? 0.7 : 1,
         }}
       >
         <Text style={{ color: "#fff", fontWeight: "600" }}>
-          {loading ? "Sending..." : "Send login link"}
+          {loading ? "Sending..." : "Send login code"}
         </Text>
       </Pressable>
     </View>
   );
 }
+
+export default LoginScreen;

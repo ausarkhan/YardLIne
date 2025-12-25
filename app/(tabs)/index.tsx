@@ -7,7 +7,7 @@ import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Link, useRouter } from 'expo-router';
-import { supabase } from '../../../lib/supabase';
+import { supabase } from '../../lib/supabase';
 
 export default function HomeScreen() {
   const router = useRouter();
