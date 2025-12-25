@@ -1,7 +1,7 @@
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 import { View, Text, TextInput, Pressable, Alert } from "react-native";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 export default function LoginScreen() {
   const [ready, setReady] = useState(false);
@@ -94,5 +94,3 @@ export default function LoginScreen() {
     </View>
   );
 }
-
-export default LoginScreen;
